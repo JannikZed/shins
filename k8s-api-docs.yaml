@@ -1,0 +1,60 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  annotations:
+  namespace: greple-northbound
+  labels:
+    app: api-docs
+  name: api-docs
+spec:
+  replicas: _REPL_
+  selector:
+    matchLabels:
+      app: api-docs
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: api-docs
+    spec:
+      containers:
+          - image: registry.gitlab.com/greple/greple/api-docs:_VERSION_
+            imagePullPolicy: Always
+            name: api-docs
+            ports:
+            - containerPort: 8080
+              name: 8080tcp2
+              protocol: TCP
+            resources:
+              requests:
+                cpu: "50m"
+                memory: "100Mi"
+              limits:
+                cpu: "100m"
+                memory: "100Mi"
+            securityContext:
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: gitlab
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-docs-service
+  namespace: greple-northbound
+spec:
+  clusterIP: None
+  ports:
+  - name: default
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: api-docs
+  sessionAffinity: None
+  type: ClusterIP
